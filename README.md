@@ -8,7 +8,9 @@ plexdb_backup.py:
 
 
 
-
+TODOs:
+ - Need to add file rotation (this can get pretty huge without it)
+ - Need to write script to handle offloading database to ramdisk on boot
 
 
 Errol Sancaktar
