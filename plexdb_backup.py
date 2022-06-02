@@ -1,6 +1,11 @@
 #!/usr/bin/python3
     
-import sys, getopt, datetime, sqlite3
+import sys
+import getopt
+import sqlite3
+import logging
+from datetime import datetime, timedelta
+
 
 def main(argv):
   
@@ -9,7 +14,13 @@ def main(argv):
     backupfolder = '/mnt/plex_ramdisk/Backups/'
     plexdb = 'com.plexapp.plugins.library.db'
     verbose = False
+    dryRun = True
     
+    
+    
+    
+    if(dryRun == True):
+        print("Dry Run. No Database Actions Taken")
     try:
         opts, args = getopt.getopt(argv, "fdbhv", ["plexfolder=","plexdb=", "backupfolder="])
     except getopt.GetoptError:
@@ -42,22 +53,28 @@ def main(argv):
         print(f'Copied {total - remaining} of {total} pages...')
     
     try:
-        # existing DB
-        sqliteCon = sqlite3.connect(plexfolder + plexdb)
-        # copy into this DB
-        backupCon = sqlite3.connect(backupfolder + plexdb + '.' + date_time + '.bak')
-        with backupCon:
-            if(verbose == True):
-                sqliteCon.backup(backupCon, pages=3, progress=progress)
-            else:
-                sqliteCon.backup(backupCon, pages=3)
+        if(dryRun == False):
+            # existing DB
+            sqliteCon = sqlite3.connect(plexfolder + plexdb)
+            # copy into this DB
+            backupCon = sqlite3.connect(backupfolder + plexdb + '.' + date_time + '.bak') 
+            with backupCon:
+                if(verbose == True):
+                    sqliteCon.backup(backupCon, pages=3, progress=progress)
+                else:
+                    sqliteCon.backup(backupCon, pages=3)
+        else:
+            print("Debugging")
+                    
         print("backup successful")
+        
     except sqlite3.Error as error:
         print("Error while taking backup: ", error)
     finally:
-        if backupCon:
-            backupCon.close()
-            sqliteCon.close()
-    
+        if(dryRun == False):
+            if backupCon:
+                backupCon.close()
+                sqliteCon.close()
+        
 if __name__ == "__main__":
        main(sys.argv[1:])
